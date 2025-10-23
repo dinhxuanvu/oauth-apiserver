@@ -24,7 +24,6 @@ import (
 	"k8s.io/apiserver/pkg/server"
 	"k8s.io/apiserver/pkg/server/dynamiccertificates"
 	"k8s.io/client-go/rest"
-	certutil "k8s.io/client-go/util/cert"
 )
 
 type SecureServingOptionsWithLoopback struct {
@@ -51,7 +50,16 @@ func (s *SecureServingOptionsWithLoopback) ApplyTo(secureServingInfo **server.Se
 
 	// create self-signed cert+key with the fake server.LoopbackClientServerNameOverride and
 	// let the server return it when the loopback client connects.
-	certPem, keyPem, err := certutil.GenerateSelfSignedCertKey(server.LoopbackClientServerNameOverride, nil, nil)
+	//
+	// NOTE: As part of the work to resolve https://issues.redhat.com/browse/OCPBUGS-61760
+	// and https://issues.redhat.com/browse/OCPBUGS-61759 it was decided that copying
+	// the loopback certification creation utility function to a local
+	// utility function would save significant effort over cherry-picking
+	// the fix from https://github.com/kubernetes/kubernetes/pull/130047 to
+	// https://github.com/openshift/kubernetes-client-go .
+	// We don't expect to backport many changes on top of this and it seemed
+	// lower risk than switching impacted modules to our fork of client-go.
+	certPem, keyPem, err := GenerateSelfSignedCertKey(server.LoopbackClientServerNameOverride, nil, nil)
 	if err != nil {
 		return fmt.Errorf("failed to generate self-signed certificate for loopback connection: %v", err)
 	}
