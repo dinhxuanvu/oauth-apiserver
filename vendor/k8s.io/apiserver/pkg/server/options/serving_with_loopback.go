@@ -17,28 +17,13 @@ limitations under the License.
 package options
 
 import (
-	"bytes"
-	cryptorand "crypto/rand"
-	"crypto/rsa"
-	"crypto/x509"
-	"crypto/x509/pkix"
-	"encoding/pem"
 	"fmt"
-	"math"
-	"math/big"
-	"net"
-	"os"
-	"path/filepath"
-	"strings"
-	"time"
 
 	"github.com/google/uuid"
 
 	"k8s.io/apiserver/pkg/server"
 	"k8s.io/apiserver/pkg/server/dynamiccertificates"
 	"k8s.io/client-go/rest"
-	"k8s.io/client-go/util/keyutil"
-	netutils "k8s.io/utils/net"
 )
 
 type SecureServingOptionsWithLoopback struct {
