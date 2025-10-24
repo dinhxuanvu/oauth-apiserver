@@ -21,7 +21,15 @@ limitations under the License.
 // the fix from https://github.com/kubernetes/kubernetes/pull/130047 to
 // https://github.com/openshift/kubernetes-client-go .
 // We don't expect to backport many changes on top of this and it seemed
-// lower risk than switching impacted modules to our fork of client-go.
+// lower risk than switching all of our aggregated API server to our fork of
+// client-go because almost nothing currently depends on it.
+//
+// The only difference we expect to be present when comparing the
+// `GenerateSelfSignedCertKeyWithFixtures` function in this file
+// with the one present in the v0.31.1 client-go source[1] is
+// the modification to change the maxAge variable to ~3 years.
+//
+// [1]: https://github.com/kubernetes/client-go/blob/c5196ebcc18e1bf29561b7a689fdb121913d221b/util/cert/cert.go#L100-L222
 
 package options
 
@@ -45,7 +53,6 @@ import (
 	netutils "k8s.io/utils/net"
 )
 
-
 // GenerateSelfSignedCertKey creates a self-signed certificate and key for the given host.
 // Host may be an IP or a DNS name
 // You may also specify additional subject alt names (either ip or dns names) for the certificate.
@@ -53,6 +60,14 @@ func GenerateSelfSignedCertKey(host string, alternateIPs []net.IP, alternateDNS 
 	return GenerateSelfSignedCertKeyWithFixtures(host, alternateIPs, alternateDNS, "")
 }
 
+// GenerateSelfSignedCertKeyWithFixtures creates a self-signed certificate and key for the given host.
+// Host may be an IP or a DNS name. You may also specify additional subject alt names (either ip or dns names)
+// for the certificate.
+//
+// If fixtureDirectory is non-empty, it is a directory path which can contain pre-generated certs. The format is:
+// <host>_<ip>-<ip>_<alternateDNS>-<alternateDNS>.crt
+// <host>_<ip>-<ip>_<alternateDNS>-<alternateDNS>.key
+// Certs/keys not existing in that directory are created.
 func GenerateSelfSignedCertKeyWithFixtures(host string, alternateIPs []net.IP, alternateDNS []string, fixtureDirectory string) ([]byte, []byte, error) {
 	validFrom := time.Now().Add(-time.Hour) // valid an hour earlier to avoid flakes due to clock skew
 
@@ -188,5 +203,3 @@ const (
 	// CertificateRequestBlockType is a possible value for pem.Block.Type.
 	CertificateRequestBlockType = "CERTIFICATE REQUEST"
 )
-
-// ---------------------------------------------------------------------------------------
